@@ -136,7 +136,7 @@ AllowMoving(cond){//true to allow moving, false to not allow moving
 	self AllowMelee(cond);
 }
 
-GiveAmmo(){//array_thread(ammoTrigs, ::GivePap);//get array of triggers called ammoTrigs
+GiveMaxAmmo(){//array_thread(ammoTrigs, ::GiveMaxAmmo);//get array of triggers called ammoTrigs
 	self UseTriggerRequireLookAt();
 	self SetCursorHint( "HINT_NOICON" );
 	flag_wait( "electricity_on" );//comment out if you do not want power on first
