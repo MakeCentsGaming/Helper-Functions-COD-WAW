@@ -93,13 +93,14 @@ ProgressBars(timer, knuckle){//trig ProgressBars(3,1);
 	player = undefined;
 	while(timer>0){
 		self waittill("trigger", player);
-		if(isDefined(knuckle)) player thread do_knuckle_crack();
-		gun = player GetCurrentWeapon(); 
-		while(gun != "zombie_knuckle_crack"){
+		if(isDefined(knuckle)){
+			player thread do_knuckle_crack();
 			gun = player GetCurrentWeapon();
-			wait(.1);
+			while(gun != "zombie_knuckle_crack"){
+				gun = player GetCurrentWeapon();
+				wait(.1);
+			}
 		}
-		player thread do_knuckle_crack();
 		player.PBar = player CreatePrimaryProgressBar();
 		player.PBar.color = ( .5, 1, 1 );
 		player.PBar UpdateBar( 0.01, 1/constTime );
