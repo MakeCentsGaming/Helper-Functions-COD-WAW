@@ -19,7 +19,7 @@ CanAfford(){//player = CanAfford();
     player = undefined;
     for(;;){
         self waittill("trigger", player);
-        if( player.score >= cost ){
+        if( player.score+5 >= cost ){
             if(cost>0){ 
                 player maps\_zombiemode_score::minus_to_player_score( cost );
                 player playLocalSound( "cha_ching" ); 
