@@ -87,19 +87,15 @@ MyWaitTillTrig(){//player = trigger MyWaitTillTrig();
 	}
 }
 
-ProgressBars(timer, knuckle){//trig ProgressBars(3,1);
+ProgressBars(timer, knuckle){//trig ProgressBars(3, true);
 	if(!isDefined(timer)) timer=3;
 	constTime = timer;
 	player = undefined;
 	while(timer>0){
 		self waittill("trigger", player);
-		if(isDefined(knuckle)){
-			player thread do_knuckle_crack();
-			gun = player GetCurrentWeapon();
-			while(gun != "zombie_knuckle_crack"){
-				gun = player GetCurrentWeapon();
-				wait(.1);
-			}
+		if(isDefined(knuckle) && knuckle){
+			player thread knuckle_crack();
+			while(player GetCurrentWeapon() != "zombie_knuckle_crack") wait(.1);
 		}
 		player.PBar = player CreatePrimaryProgressBar();
 		player.PBar.color = ( .5, 1, 1 );
@@ -115,7 +111,7 @@ ProgressBars(timer, knuckle){//trig ProgressBars(3,1);
 	self delete();
 }
 
-do_knuckle_crack(){// self is player
+knuckle_crack(){// self is player
 	self DisableOffhandWeapons();
 	self AllowMoving(false);
 	if( self GetStance() == "prone" ) self SetStance("crouch");
