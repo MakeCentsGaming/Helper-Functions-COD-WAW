@@ -31,8 +31,7 @@ CanAfford(){//player = CanAfford();
     }
 }
 
-isSprinting()//player isSprinting();
-{
+isSprinting(){//player isSprinting();
 	velocity = self GetVelocity(); 
 	// originHeight = self.origin[2] - 40;
 	player_speed = abs(velocity[0]) + abs(velocity[1]); 
@@ -40,8 +39,7 @@ isSprinting()//player isSprinting();
 	return false;
 }
 
-isFacing( facee, player )     // copied from _laststand.gsc and modified
-{
+isFacing( facee, player ){// copied from _laststand.gsc and modified
 	if( distancesquared( player.origin, facee.origin ) < (110*110) ) return false;
 	player_angles = player GetPlayerAngles();;
 	forwardVec = anglesToForward( player_angles );
@@ -50,7 +48,6 @@ isFacing( facee, player )     // copied from _laststand.gsc and modified
 	toFaceeVec = facee.origin - player.origin;
 	toFaceeVec2D = ( toFaceeVec[0], toFaceeVec[1], 0 );
 	unitToFaceeVec2D = VectorNormalize( toFaceeVec2D );
-
 	dotProduct = VectorDot( unitForwardVec2D, unitToFaceeVec2D );
 	return ( dotProduct > 0.95 );
 }
@@ -160,28 +157,23 @@ GivePap(){//array_thread(papTrigs, ::GivePap);//get array of triggers called pap
 	flag_wait( "electricity_on" );
 	self SetHintString( &"ZOMBIE_PERK_PACKAPUNCH" );
 	cost = 5000;
-	
 	if(IsDefined( self.zombie_cost )){
 	    cost = self.zombie_cost;
 	    self SetHintString( "Press &&1 for pack-a-punch. Cost[" + cost + "]" );
 	}
-		
 	while(1)
 	{
 		self waittill("trigger",player);
-		
 		if(player.score+5<cost) continue;
 		if(! maps\_zombiemode_utility::is_player_valid(player)) continue;
 		gun = player GetCurrentWeapon();
 		if( !IsDefined( level.zombie_include_weapons[gun + "_upgraded"])) continue;
 		if(WeaponClass( gun ) == "grenade"||gun == "none") continue;
-		
 		player maps\_zombiemode_score::minus_to_player_score( cost );
 		player GiveWeapon(gun+"_upgraded");
 		player TakeWeapon( gun );
 		player SwitchToWeapon(gun+"_upgraded");
 		player GiveStartAmmo(gun+"_upgraded");
-		
 		wait(.01);
 	}
 }
