@@ -134,3 +134,57 @@ AllowMoving(cond){//true to allow moving, false to not allow moving
 	self AllowSprint(cond);
 	self AllowProne(cond);		
 	self AllowMelee(cond);
+}
+
+GiveAmmo(){//array_thread(ammoTrigs, ::GivePap);//get array of triggers called ammoTrigs
+	self UseTriggerRequireLookAt();
+	self SetCursorHint( "HINT_NOICON" );
+	flag_wait( "electricity_on" );//comment out if you do not want power on first
+	cost = 500;
+	if(IsDefined( self.zombie_cost )) cost = self.zombie_cost;
+	self SetHintString( "Press &&1 to buy ammo [Cost: " + cost + "]" );
+	while(1)
+	{
+		self waittill("trigger",player);
+		if(player.score+5<cost) continue;
+		if(! maps\_zombiemode_utility::is_player_valid(player)) continue;
+		gun = player GetCurrentWeapon();
+		if(player GetWeaponAmmoStock( gun )>= WeaponStartAmmo( gun )) continue;
+		if(WeaponClass( gun ) == "grenade"||gun == "none") continue;
+		player maps\_zombiemode_score::minus_to_player_score( cost );
+		player GiveStartAmmo(gun);
+		wait(.01);
+	}
+}
+
+GivePap(){//array_thread(papTrigs, ::GivePap);//get array of triggers called papTrigs
+	self UseTriggerRequireLookAt();
+	self SetCursorHint( "HINT_NOICON" );
+	flag_wait( "electricity_on" );
+	self SetHintString( &"ZOMBIE_PERK_PACKAPUNCH" );
+	cost = 5000;
+	
+	if(IsDefined( self.zombie_cost )){
+	    cost = self.zombie_cost;
+	    self SetHintString( "Press &&1 for pack-a-punch. Cost[" + cost + "]" );
+	}
+		
+	while(1)
+	{
+		self waittill("trigger",player);
+		
+		if(player.score+5<cost) continue;
+		if(! maps\_zombiemode_utility::is_player_valid(player)) continue;
+		gun = player GetCurrentWeapon();
+		if( !IsDefined( level.zombie_include_weapons[gun + "_upgraded"])) continue;
+		if(WeaponClass( gun ) == "grenade"||gun == "none") continue;
+		
+		player maps\_zombiemode_score::minus_to_player_score( cost );
+		player GiveWeapon(gun+"_upgraded");
+		player TakeWeapon( gun );
+		player SwitchToWeapon(gun+"_upgraded");
+		player GiveStartAmmo(gun+"_upgraded");
+		
+		wait(.01);
+	}
+}
