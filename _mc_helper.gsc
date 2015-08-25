@@ -58,6 +58,7 @@ GiveWeaponOrAmmo(gun){//gave = player GiveWeaponOrAmmo(nameofguntogive);
 	if(self HasWeapon(gun) && self.score+5 >= level.zombie_include_weapons[gun].ammo_cost){
 		if(WeaponClass(gun) == "gas" || weaponStartAmmo(gun) <= self getWeaponAmmoStock(gun)) return "none";
 		self GiveStartAmmo(gun);
+		if(gun != currentGun) self SwitchToWeapon(gun);
 		self maps\_zombiemode_score::minus_to_player_score( level.zombie_include_weapons[gun].ammo_cost );
 		self playLocalSound("cha_ching");
 		return "ammo";
