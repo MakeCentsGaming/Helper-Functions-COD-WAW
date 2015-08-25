@@ -54,20 +54,27 @@ isFacing( facee, player ){// copied from _laststand.gsc and modified
 
 GiveWeaponOrAmmo(gun){//gave = player GiveWeaponOrAmmo(nameofguntogive);
 	currentGun = self GetCurrentWeapon();
-	if(!isDefined(gun) || !isDefined(currentGun) || gun == "none" || WeaponClass(gun) == "grenade" || currentGun == "none" || WeaponClass(currentGun) == "grenade" ) return "none";
-	if(self HasWeapon(gun)){
+	if(!isDefined(level.zombie_include_weapons[gun]) || !isDefined(gun) || !isDefined(currentGun) || gun == "none" || WeaponClass(gun) == "grenade" || currentGun == "none" || WeaponClass(currentGun) == "grenade" ) return "none";
+	if(self HasWeapon(gun) && self.score+5 >= level.zombie_include_weapons[gun].ammo_cost){
 		if(WeaponClass(gun) == "gas" || weaponStartAmmo(gun) <= self getWeaponAmmoStock(gun)) return "none";
 		self GiveStartAmmo(gun);
+		self maps\_zombiemode_score::minus_to_player_score( level.zombie_include_weapons[gun].ammo_cost );
+		self playLocalSound("cha_ching");
 		return "ammo";
+	}else if(self.score+5 >= level.zombie_include_weapons[gun].cost){
+		weapons = self GetWeaponsListPrimaries();
+		maxguns = 2;
+		if(self HasPerk("specialty_extraammo")) maxguns = 3;
+		if(weapons.size >= maxguns) self TakeWeapon(currentGun);
+		self GiveWeapon(gun);
+		self SwitchToWeapon(gun);
+		self GiveStartAmmo(gun);
+		self maps\_zombiemode_score::minus_to_player_score( level.zombie_include_weapons[gun].cost );
+		self playLocalSound("cha_ching");
+		return "gun";
 	}
-	weapons = self GetWeaponsListPrimaries();
-	maxguns = 2;
-	if(self HasPerk("specialty_extraammo")) maxguns = 3;
-	if(weapons.size >= maxguns) self TakeWeapon(currentGun);
-	self GiveWeapon(gun);
-	self SwitchToWeapon(gun);
-	self GiveStartAmmo(gun);
-	return "gun";
+	self playLocalSound("no_cha_ching");
+	return "none";
 }
 
 MyWaitTillTrig(){//player = trigger MyWaitTillTrig();
