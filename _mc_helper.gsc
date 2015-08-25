@@ -54,7 +54,7 @@ isFacing( facee, player ){// copied from _laststand.gsc and modified
 
 GiveWeaponOrAmmo(gun){//gave = player GiveWeaponOrAmmo(nameofguntogive);
 	currentGun = self GetCurrentWeapon();
-	if(!isDefined(level.zombie_include_weapons[gun]) || !isDefined(gun) || !isDefined(currentGun) || gun == "none" || WeaponClass(gun) == "grenade" || currentGun == "none" || WeaponClass(currentGun) == "grenade" ) return "none";
+	if(!is_player_valid(self) || !isDefined(level.zombie_include_weapons[gun]) || !isDefined(gun) || !isDefined(currentGun) || gun == "none" || WeaponClass(gun) == "grenade" || currentGun == "none" || WeaponClass(currentGun) == "grenade" ) return "none";
 	if(self HasWeapon(gun) && self.score+5 >= level.zombie_include_weapons[gun].ammo_cost){
 		if(WeaponClass(gun) == "gas" || weaponStartAmmo(gun) <= self getWeaponAmmoStock(gun)) return "none";
 		self GiveStartAmmo(gun);
