@@ -53,16 +53,17 @@ isFacing( facee, player ){// copied from _laststand.gsc and modified
 }
 
 GiveWeaponOrAmmo(gun){//gave = player GiveWeaponOrAmmo(nameofguntogive);
-	if( gun == "none" || WeaponClass(gun) == "grenade"  || self GetCurrentWeapon() == "none" || WeaponClass(self GetCurrentWeapon())=="grenade") return "none";
+	currentGun = self GetCurrentWeapon();
+	if(!isDefined(gun) || !isDefined(currentGun) || gun == "none" || WeaponClass(gun) == "grenade" || currentGun == "none" || WeaponClass(currentGun) == "grenade" ) return "none";
 	if(self HasWeapon(gun)){
-		if(WeaponClass(gun) == "gas" ) return "none";
+		if(WeaponClass(gun) == "gas" || weaponStartAmmo(gun) <= self getWeaponAmmoStock(gun)) return "none";
 		self GiveStartAmmo(gun);
 		return "ammo";
 	}
 	weapons = self GetWeaponsListPrimaries();
 	maxguns = 2;
 	if(self HasPerk("specialty_extraammo")) maxguns = 3;
-	if(weapons.size >= maxguns) self TakeWeapon(self GetCurrentWeapon());
+	if(weapons.size >= maxguns) self TakeWeapon(currentGun);
 	self GiveWeapon(gun);
 	self SwitchToWeapon(gun);
 	self GiveStartAmmo(gun);
