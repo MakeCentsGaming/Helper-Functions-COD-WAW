@@ -53,7 +53,7 @@ isFacing( facee, player ){// copied from _laststand.gsc and modified
 }
 
 GiveWeaponOrAmmo(gun){//gave = player GiveWeaponOrAmmo(nameofguntogive);
-	if( gun == "none" || WeaponClass(gun) == "grenade" ) return "none";
+	if( gun == "none" || WeaponClass(gun) == "grenade"  || self GetCurrentWeapon() == "none" || WeaponClass(self GetCurrentWeapon())=="grenade") return "none";
 	if(self HasWeapon(gun)){
 		if(WeaponClass(gun) == "gas" ) return "none";
 		self GiveStartAmmo(gun);
