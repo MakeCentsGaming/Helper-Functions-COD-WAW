@@ -87,6 +87,8 @@ MyWaitTillTrig(){//player = trigger MyWaitTillTrig();
 				player playLocalSound("no_cha_ching");
 				continue;
 			}
+			player maps\_zombiemode_score::minus_to_player_score( self.zombie_cost );
+			player playLocalSound("cha_ching");
 		}
 		return player;
 		wait(.01);
