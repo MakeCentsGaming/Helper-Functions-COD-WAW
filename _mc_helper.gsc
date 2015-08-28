@@ -32,8 +32,7 @@ CanAfford(){//player = CanAfford();
 }
 
 isSprinting(){//player isSprinting();
-	velocity = self GetVelocity(); 
-	// originHeight = self.origin[2] - 40;
+	velocity = self GetVelocity();
 	player_speed = abs(velocity[0]) + abs(velocity[1]); 
 	if(player_speed > 225) return true;
 	return false;
