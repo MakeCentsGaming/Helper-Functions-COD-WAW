@@ -12,23 +12,21 @@ Place the following
 in the gsc you want to use these helper functions
 ###############################################################################
 */
-
-CanAfford(){//player = CanAfford();
-    cost = 0;
-    if(isDefined(self.zombie_cost)) cost = self.zombie_cost;
-    player = undefined;
-    for(;;){
-        self waittill("trigger", player);
-        if( player.score+5 >= cost ){
-            if(cost>0){ 
-                player maps\_zombiemode_score::minus_to_player_score( cost );
-                player playLocalSound( "cha_ching" ); 
-            }
-            return player;
-        }else{
-            player playLocalSound( "no_cha_ching" );
-        }       
-    }
+MyWaitTillTrig(){//player = trigger MyWaitTillTrig();
+	while(1){
+		self waittill("trigger",player);
+		if(isDefined(player.revivetrigger)) continue;
+		if(isDefined(self.zombie_cost) && self.zombie_cost>0){
+			if(player.score+5<self.zombie_cost){
+				player playLocalSound("no_cha_ching");
+				continue;
+			}
+			player maps\_zombiemode_score::minus_to_player_score( self.zombie_cost );
+			player playLocalSound("cha_ching");
+		}
+		return player;
+		wait(.01);
+	}
 }
 
 isSprinting(){//player isSprinting();
@@ -77,21 +75,23 @@ GiveWeaponOrAmmo(gun){//gave = player GiveWeaponOrAmmo(nameofguntogive);
 	return "none";
 }
 
-MyWaitTillTrig(){//player = trigger MyWaitTillTrig();
-	while(1){
-		self waittill("trigger",player);
-		if(isDefined(player.revivetrigger)) continue;
-		if(isDefined(self.zombie_cost) && self.zombie_cost>0){
-			if(player.score+5<self.zombie_cost){
-				player playLocalSound("no_cha_ching");
-				continue;
-			}
-			player maps\_zombiemode_score::minus_to_player_score( self.zombie_cost );
-			player playLocalSound("cha_ching");
-		}
-		return player;
-		wait(.01);
-	}
+//This function has been replaced my MyWaitTillTrig(); 
+CanAfford(){//player = trigger CanAfford();
+    cost = 0;
+    if(isDefined(self.zombie_cost)) cost = self.zombie_cost;
+    player = undefined;
+    for(;;){
+        self waittill("trigger", player);
+        if( player.score+5 >= cost ){
+            if(cost>0){ 
+                player maps\_zombiemode_score::minus_to_player_score( cost );
+                player playLocalSound( "cha_ching" ); 
+            }
+            return player;
+        }else{
+            player playLocalSound( "no_cha_ching" );
+        }       
+    }
 }
 
 ProgressBars(timer, knuckle){//trig ProgressBars(3, true);
