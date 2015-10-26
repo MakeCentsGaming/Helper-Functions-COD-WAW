@@ -187,3 +187,76 @@ GivePap(){//array_thread(papTrigs, ::GivePap);//get array of triggers called pap
 		wait(.01);
 	}
 }
+
+/*
+--- Status functions ---
+In any function add:
+iprinln("ent-string-array description", ObjStatus(ent-string-array,kvp0,kvp1,kvp2,kvp3,kvp4));
+ - only use kvps if you want to check kvps of object
+
+Example:
+testarray = getentarray("initial_spawn_points", "targetname");
+iprintln("test array",ObjStatus(testarray));//should print "test array is an array of: 4"
+iprintln("0th ent of array", ObjStatus(testarray[0],"origin", "angles"));//should print "0th ent of array, origin (# # #), angles (# # #)"
+*/
+ObjStatus(obj, kvp0, kvp1, kvp2, kvp3, kvp4){
+	if(!IsDefined( obj )) return " is not defined";
+	if(IsArray( obj ) && IsDefined( obj.size )) return " is an array of: " + obj.size;
+	if(IsString( obj )) return " is a string: " ;
+	stat = " is defined";
+	stat = stat+Stats(obj,kvp0);
+	stat = stat+Stats(obj,kvp1);
+	stat = stat+Stats(obj,kvp2);
+	stat = stat+Stats(obj,kvp3);
+	stat = stat+Stats(obj,kvp4);
+	return stat;
+}
+
+Stats(obj,stat){
+	if(IsDefined( obj ) && IsDefined( stat )){
+		switch(stat){
+			case "origin":
+				if(IsDefined( obj.origin )) return ", origin: " + obj.origin;
+				else return " no origin";
+			case "angles":
+				if(IsDefined( obj.angles )) return ", angles: " + obj.angles;
+				else return " no angles";
+			case "script_noteworthy":
+				if(IsDefined( obj.script_noteworthy )) return ", script_noteworthy: " + obj.script_noteworthy;
+				else return " no script_noteworthy";
+			case "targetname":
+				if(IsDefined( obj.targetname )) return ", targetname: " + obj.targetname;
+				else return " no targetname";
+			case "target":
+				if(IsDefined( obj.target )) return ", target: " + obj.target;
+				else return " no target";
+			case "script_string":
+				if(IsDefined( obj.script_string )) return ", script_string: " + obj.script_string;
+				else return " no script_string";
+			case "script_fxid":
+				if(IsDefined( obj.script_fxid )) return ", script_fxid: " + obj.script_fxid;
+				else return " no script_fxid";
+			case "speed":
+				if(IsDefined( obj.speed )) return ", speed: " + obj.speed;
+				else return " no speed";
+			case "xyz":
+				xyzStats = "";
+				xyz = [];
+				xyz[0] = ", (x: ";
+				xyz[1] = " y: ";
+				xyz[2] = " z: )";
+				for(i=0;i<3;i++){
+					if(IsDefined( obj.origin ) && IsDefined( obj.origin[i] )) xyzStats = xyzStats + xyz[i] + obj.origin[i];
+					else xyzStats=xyzStats + xyz[i] + "error";
+				}
+				return xyzStats;
+			// case "your kvp added here":
+			// 	if(IsDefined( obj.your kvp added here )) return ", your kvp added here: " + obj.your kvp added here;
+			// 	else return " no your kvp added here";
+			default:
+				return ", kvp not defined in Stats function";
+		}
+	}
+	if(IsDefined( obj )) return "";
+	return ", object no longer defined";
+}
