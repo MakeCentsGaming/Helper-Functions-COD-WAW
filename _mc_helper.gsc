@@ -260,3 +260,28 @@ Stats(obj,stat){
 	if(IsDefined( obj )) return "";
 	return ", object no longer defined";
 }
+//WIP, new way to check if defined and true, and compare two objects
+IsVal(arg1, arg2, forceit){
+	/*Check if arg1 is true and defined, and also == to arg2 (optional), 
+	if arg2 undefined it can still return true if arg1 is true
+	strings return true
+	Optional calls:
+	    isVal(arg1) //check if one object is defined and true
+	    isVal(arg1, arg2) //check if both objects are defined and true
+	    isVal(arg1, arg2, forceit) //if second object not defined, return false
+	*/
+	if(!IsDefined( arg1 )){
+		/# IPrintLn( "IsVal, arg1 not defined" ); #/
+		return false;
+	}
+	if(IsDefined( arg2 )){
+		if(arg1==arg2) return true;
+		return false;
+	}
+	if(IsDefined( forceit ) && forceit){
+		/# IPrintLn( "IsVal, arg1 defined, but arg2 not defined" ); #/
+		return false;
+	}
+	if(arg1) return true;
+	return false;
+}
