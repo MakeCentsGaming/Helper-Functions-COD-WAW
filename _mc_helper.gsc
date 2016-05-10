@@ -76,7 +76,7 @@ GiveWeaponOrAmmo(gun){//gave = player GiveWeaponOrAmmo(nameofguntogive);
 }
 
 //This function has been replaced my MyWaitTillTrig(); 
-CanAfford(){//player = trigger CanAfford();
+TrigCanAfford(){//player = trigger TrigCanAfford();
     cost = 0;
     if(isDefined(self.zombie_cost)) cost = self.zombie_cost;
     player = undefined;
@@ -284,4 +284,14 @@ IsVal(arg1, arg2, forceit){
 	}
 	if(arg1) return true;
 	return false;
+}
+//player CanAfford(self.zombie_cost);
+CanAfford(cost){
+	if(!IsDefined( self )) return false;
+	if(!is_player_valid( self )) return false;
+	if(!IsDefined( cost )) return true;
+	if(self.score+5>=cost){
+		self maps\_zombiemode_score::minus_to_player_score( cost );
+		return true;
+	}
 }
