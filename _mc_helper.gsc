@@ -1,6 +1,7 @@
 #include maps\_utility; 
 #include common_scripts\utility;
 #include maps\_zombiemode_utility;
+#include maps\_hud_util;
 /*
 #####################
 by: M.A.K.E C E N T S
