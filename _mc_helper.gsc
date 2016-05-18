@@ -10,56 +10,94 @@ Place the following
 	#include maps\_mc_helper;
 
 in the gsc you want to use these helper functions
-###############################################################################
+or add the functions you want to use to the gsc to use in, or to _zombiemode_utility
+#####################################################################################
 */
-MyWaitTillTrig(){//player = trigger MyWaitTillTrig();
-	while(1){
-		self waittill("trigger",player);
-		if(isDefined(player.revivetrigger)) continue;
-		if(isDefined(self.zombie_cost) && self.zombie_cost>0){
-			if(player.score+5<self.zombie_cost){
-				player playLocalSound("no_cha_ching");
-				continue;
-			}
-			player maps\_zombiemode_score::minus_to_player_score( self.zombie_cost );
-			player playLocalSound("cha_ching");
-		}
-		return player;
-		wait(.01);
-	}
-}
 
-isSprinting(){//player isSprinting();
-	velocity = self GetVelocity();
-	player_speed = abs(velocity[0]) + abs(velocity[1]); 
-	if(player_speed > 225) return true;
+
+IsVal(arg1, arg2, forceit){//replaces: if(isdefined(arg1) && arg1), if(isdefined(arg1) && isdefined(arg2) && arg1==arg2)
+/*	arg1 = first thing to check if defined and true
+	arg2 = optional, second thing to check arg1 against and if defined, default checks arg1 only
+	forceit = optional, if arg2 is not defined returns false, default checks arg1 only
+	
+	Check if arg1 is true and defined, and also == to arg2 (optional), 
+	if arg2 undefined it can still return true if arg1 is true
+	strings return true
+	
+	Called on player, optionally set return value to varible:
+	    isVal(arg1); //arg1 can be number, boolean, or ent
+	    isVal(arg1, arg2); //arg2 can be number, boolean, or ent
+	    isVal(arg1, arg2, forceit); //forceit should be boolean or nothing
+	    result = isVal(arg1);//optional var set to return
+*/
+	if(!IsDefined( arg1 )){
+		// /# IPrintLn( "IsVal, arg1 not defined" ); #/
+		return false;
+	}
+	if(IsDefined( arg2 )){
+		if(arg1==arg2) return true;
+		return false;
+	}
+	if(IsDefined( forceit ) && forceit){
+		// /# IPrintLn( "IsVal, arg1 defined, but arg2 not defined" ); #/
+		return false;
+	}
+	if(arg1) return true;
 	return false;
 }
 
-isFacing( facee, player ){// copied from _laststand.gsc and modified
-	if( distancesquared( player.origin, facee.origin ) < (110*110) ) return false;
-	player_angles = player GetPlayerAngles();;
-	forwardVec = anglesToForward( player_angles );
-	forwardVec2D = ( forwardVec[0], forwardVec[1], 0 );
-	unitForwardVec2D = VectorNormalize( forwardVec2D );
-	toFaceeVec = facee.origin - player.origin;
-	toFaceeVec2D = ( toFaceeVec[0], toFaceeVec[1], 0 );
-	unitToFaceeVec2D = VectorNormalize( toFaceeVec2D );
-	dotProduct = VectorDot( unitForwardVec2D, unitToFaceeVec2D );
-	return ( dotProduct > 0.95 );
+CanAfford(cost, subscore){//replaces: if(player.score>=score)
+/*	cost = cost for this purchase or ent
+	subscore = optional, subtract score true or false, default subtracts score unless otherwise told
+	
+	Check if the player can afford this purchase by calling on the player passing the cost or ent
+	with zombie_cost defined. If cost is not defined, it will return true and print not defined.
+	
+	Called on player, optionally set return value to varible:
+	    player CanAfford(cost);//cost would be replaced by number that it cost
+		player CanAfford(ent);//passing the ent with zombie_cost defined
+		player CanAfford(cost,subscore);//passing a 0 will not subtract score
+		afford = player CanAfford(1250);//optional var set to return
+*/
+	if(!IsDefined( self ) || self == level) return false;
+	if(!is_player_valid( self )) return false;
+	if(IsDefined( cost ) && IsDefined( cost.zombie_cost )) cost = cost.zombie_cost;
+	if(!IsDefined( cost )){
+		IPrintLn( "-- ^1cost is not defined" );
+		return true;
+	}
+	if(self.score+5>=cost){
+		if((IsDefined( subscore ) && !subscore) || cost==0) return true;
+		self maps\_zombiemode_score::minus_to_player_score( cost );
+		return true;
+	}
+	return false;
 }
 
-GiveWeaponOrAmmo(gun){//gave = player GiveWeaponOrAmmo(nameofguntogive);
+
+GiveWeaponOrAmmo(gun){//replaces self GiveWeapon( Weaponfile Name ), self GiveStartAmmo( Weaponfile Name )
+/*  gun = gun to give or give ammo for
+
+	Requires: CanAfford(cost,subscore)
+	Check if player can afford gun or ammo depending if player has gun, checks for mulekick, plays sound 
+	and subtracts points, returns what it gave player for use if necessary
+
+	Called on player, optionally set return value to varible:
+		player GiveWeaponOrAmmo(nameofguntogive);//replace nameofguntogive with name of gun to give, gives ammo or gun
+		player GiveWeaponOrAmmo();//gives ammo for current gun
+		gave = player GiveWeaponOrAmmo(nameofguntogive);//optional var set to return
+*/
+	if(!IsDefined( gun )) gun=self GetCurrentWeapon();
 	currentGun = self GetCurrentWeapon();
 	if(!is_player_valid(self) || !isDefined(level.zombie_include_weapons[gun]) || !isDefined(gun) || !isDefined(currentGun) || gun == "none" || WeaponClass(gun) == "grenade" || currentGun == "none" || WeaponClass(currentGun) == "grenade" ) return "none";
-	if(self HasWeapon(gun) && self.score+5 >= level.zombie_include_weapons[gun].ammo_cost){
+	if(self HasWeapon(gun) && self CandAfford(level.zombie_include_weapons[gun].ammo_cost,false)){
 		if(WeaponClass(gun) == "gas" || weaponStartAmmo(gun) <= self getWeaponAmmoStock(gun)) return "none";
 		self GiveStartAmmo(gun);
 		if(gun != currentGun) self SwitchToWeapon(gun);
 		self maps\_zombiemode_score::minus_to_player_score( level.zombie_include_weapons[gun].ammo_cost );
 		self playLocalSound("cha_ching");
 		return "ammo";
-	}else if(self.score+5 >= level.zombie_include_weapons[gun].cost){
+	}else if(self CandAfford(level.zombie_include_weapons[gun].cost,false)){
 		weapons = self GetWeaponsListPrimaries();
 		maxguns = 2;
 		if(self HasPerk("specialty_extraammo")) maxguns = 3;
@@ -75,31 +113,89 @@ GiveWeaponOrAmmo(gun){//gave = player GiveWeaponOrAmmo(nameofguntogive);
 	return "none";
 }
 
-//This function has been replaced my MyWaitTillTrig(); 
-TrigCanAfford(){//player = trigger TrigCanAfford();
-    cost = 0;
-    if(isDefined(self.zombie_cost)) cost = self.zombie_cost;
-    player = undefined;
-    for(;;){
-        self waittill("trigger", player);
-        if( player.score+5 >= cost ){
-            if(cost>0){ 
-                player maps\_zombiemode_score::minus_to_player_score( cost );
-                player playLocalSound( "cha_ching" ); 
-            }
-            return player;
-        }else{
-            player playLocalSound( "no_cha_ching" );
-        }       
-    }
+isFacing( facee, player ){// copied from _laststand.gsc and modified
+	if(!IsDefined( facee )||!IsDefined( player )) return false;
+	if( distancesquared( player.origin, facee.origin ) < (110*110) ) return false;
+	player_angles = player GetPlayerAngles();;
+	forwardVec = anglesToForward( player_angles );
+	forwardVec2D = ( forwardVec[0], forwardVec[1], 0 );
+	unitForwardVec2D = VectorNormalize( forwardVec2D );
+	toFaceeVec = facee.origin - player.origin;
+	toFaceeVec2D = ( toFaceeVec[0], toFaceeVec[1], 0 );
+	unitToFaceeVec2D = VectorNormalize( toFaceeVec2D );
+	dotProduct = VectorDot( unitForwardVec2D, unitToFaceeVec2D );
+	return ( dotProduct > 0.95 );
 }
 
-ProgressBars(timer, knuckle){//trig ProgressBars(3, true);
+isSprinting(){//player isSprinting();
+	velocity = self GetVelocity();
+	player_speed = abs(velocity[0]) + abs(velocity[1]); 
+	if(player_speed > 225) return true;
+	return false;
+}
+
+MyWaitTillTrig(cost){//replaces trigger waittill("trigger", player)
+/*	cost = optional, will look at zombie_cost if not defined, and continue if neither is defined
+	
+	Requires: CanAfford(cost,subscore)
+	Return the player that just bought something if they can afford it, adds small wait for controllers
+
+	Calls:
+		player = trigger MyWaitTillTrig();
+		player = trigger MyWaitTillTrig();
+*/
+	if(!IsDefined( self ) || self == level){
+		IPrintLn( "-- ^1This trigger was not defined, or this function was called on level and not a trigger" );
+		IPrintLn( "-- ^1The host will be returned" );
+		return get_players()[0];//returns host to limit errors
+	}
+	while(1){
+		self waittill("trigger",player);
+		if(!is_player_valid( player )){
+			wait(.1);
+			continue;
+		}
+		for( t=0;t<.15;t=t+.05 ){
+			wait(.05);
+			if(!player UseButtonPressed()) continue;
+		}
+		if(!player UseButtonPressed()) continue;
+		if(!IsDefined( cost ) && isDefined(self.zombie_cost)) cost = self.zombie_cost;
+		if(!IsDefined( cost )) cost = 0;
+		if(player CanAfford(cost)){
+			if(cost>0) player playLocalSound("cha_ching");
+			return player;
+		}else{
+			player playLocalSound("no_cha_ching");
+			wait(.1);
+			continue;
+		}
+		wait(.1);
+	}
+}
+
+ProgressBars(timer, knuckle, deleteit){
+/*	timer = optional, int or float for time to finish progress bar
+	knuckle = optional, boolean to have knuckle crack during or not
+	deleteit = optional, delete this trigger when done, boolean, default deletes it
+
+	Requires: knuckle_crack() and #include maps\_hud_util;
+	Displays a progress bar while player is holding use button until time is up, notifies
+	stop_building when progress bar is done, used for knuckle crack timer
+
+	Calls:
+		trig ProgressBars();
+		trig ProgressBars(timer);
+		trig ProgressBars(timer, knuckle);
+		trig ProgressBars(timer, knuckle, deleteit);
+*/
+	if(!IsDefined( self )) return false;
 	if(!isDefined(timer)) timer=3;
 	constTime = timer;
 	player = undefined;
 	while(timer>0){
 		self waittill("trigger", player);
+		if(!is_player_valid( player )) return false;
 		if(isDefined(knuckle) && knuckle){
 			player thread knuckle_crack();
 			while(player GetCurrentWeapon() != "zombie_knuckle_crack") wait(.1);
@@ -115,10 +211,20 @@ ProgressBars(timer, knuckle){//trig ProgressBars(3, true);
 		player.PBar destroyElem();
 		player.PBar = undefined;
 	}
-	self delete();
+	if(!IsDefined( deleteit ) || deleteit) self delete();
 }
 
 knuckle_crack(){// self is player
+/*	no vars
+
+	Requires: AllowMoving(cond) and zombie_knuckle_crack
+	Cracks players knuckles, checks if has deathmachine before giving back last weapon
+
+	Calls:
+		player thread knuckle_crack();
+
+*/
+	if(is_player_valid( self )) return;
 	self DisableOffhandWeapons();
 	self AllowMoving(false);
 	if( self GetStance() == "prone" ) self SetStance("crouch");
@@ -127,12 +233,16 @@ knuckle_crack(){// self is player
 	self SwitchToWeapon( "zombie_knuckle_crack" );
 	self waittill_any( "fake_death", "death", "player_downed", "stopped_building", "weapon_change_complete");
 	self EnableOffhandWeapons();
+	if(self GetCurrentWeapon()=="zombie_knuckle_crack" && IsSubStr( gun,"deathmachine" ) && (self !HasWeapon( "deathmachine" ) && self !HasWeapon( "deathmachine_upgraded" ))) self SwitchToWeapon( self GetWeaponsListPrimaries()[0] );
 	if(self GetCurrentWeapon()=="zombie_knuckle_crack" && is_player_valid(self)) self SwitchToWeapon( gun );
 	self TakeWeapon( "zombie_knuckle_crack" );
 	self AllowMoving(true);
 }
 
 AllowMoving(cond){//true to allow moving, false to not allow moving
+/*	cond = true or false, true will allow moving, false will prevent it
+
+*/
 	self AllowLean(cond);
 	self AllowAds(cond);
 	self AllowSprint(cond);
@@ -140,7 +250,13 @@ AllowMoving(cond){//true to allow moving, false to not allow moving
 	self AllowMelee(cond);
 }
 
-GiveMaxAmmo(){//array_thread(ammoTrigs, ::GiveMaxAmmo);//get array of triggers called ammoTrigs
+GiveMaxAmmo(){
+/*	no vars
+
+	Calls:
+	ammoTrigs = GetEntArray("ammo_trigs", "targetname");//get the array of triggers to buy max ammo
+		array_thread(ammoTrigs, ::GiveMaxAmmo);//get array of triggers called ammoTrigs
+*/
 	self UseTriggerRequireLookAt();
 	self SetCursorHint( "HINT_NOICON" );
 	flag_wait( "electricity_on" );//comment out if you do not want power on first
@@ -161,30 +277,42 @@ GiveMaxAmmo(){//array_thread(ammoTrigs, ::GiveMaxAmmo);//get array of triggers c
 	}
 }
 
-GivePap(){//array_thread(papTrigs, ::GivePap);//get array of triggers called papTrigs
+GivePap(cost){
+/*	cost = optional, cost of pap
+
+	Requires: CanAfford(cost, subscore), MyWaitTillTrig(cost)
+	Gives the player a papped version of the current gun from a trigger_use
+
+	Calls:
+	papTrigs = GetEntArray("pap_trigs", "targetname");//get the array of triggers to buy pap
+		array_thread(papTrigs, ::GivePap);//get array of triggers called papTrigs
+	trig = getent("papTrig", "targetname");//if only on trigger on map with this targetname does it
+		trig thread GivePap();
+
+*/
 	self UseTriggerRequireLookAt();
 	self SetCursorHint( "HINT_NOICON" );
 	flag_wait( "electricity_on" );
 	self SetHintString( &"ZOMBIE_PERK_PACKAPUNCH" );
-	cost = 5000;
-	if(IsDefined( self.zombie_cost )){
-	    cost = self.zombie_cost;
-	    self SetHintString( "Press &&1 for pack-a-punch. Cost[" + cost + "]" );
-	}
-	while(1)
-	{
-		self waittill("trigger",player);
-		if(player.score+5<cost) continue;
-		if(! maps\_zombiemode_utility::is_player_valid(player)) continue;
-		gun = player GetCurrentWeapon();
-		if( !IsDefined( level.zombie_include_weapons[gun + "_upgraded"])) continue;
-		if(WeaponClass( gun ) == "grenade"||gun == "none") continue;
-		player maps\_zombiemode_score::minus_to_player_score( cost );
-		player GiveWeapon(gun+"_upgraded");
-		player TakeWeapon( gun );
-		player SwitchToWeapon(gun+"_upgraded");
-		player GiveStartAmmo(gun+"_upgraded");
-		wait(.01);
+	if(!IsDefined( cost ) && IsDefined( self.zombie_cost )) cost = self.zombie_cost;
+	if(!IsDefined( cost )) cost = 5000;
+	self SetHintString( "Press &&1 for pack-a-punch. Cost[" + cost + "]" );
+	while(1){
+		gun = undefined;
+		player = self MyWaitTillTrig(cost);
+		if(!is_player_valid( player )) gun = "none";
+		else gun = player GetCurrentWeapon();
+		if(!IsDefined( gun ) || gun == "none" || !IsDefined( level.zombie_include_weapons[gun + "_upgraded"]) || WeaponClass( gun ) == "grenade"){
+			wait(.1);
+			continue;
+		}
+		if(player CanAfford(cost)){
+			player GiveWeapon(gun+"_upgraded");
+			player TakeWeapon( gun );
+			player SwitchToWeapon(gun+"_upgraded");
+			player GiveStartAmmo(gun+"_upgraded");
+		}
+		wait(.1);
 	}
 }
 
@@ -260,38 +388,32 @@ Stats(obj,stat){
 	if(IsDefined( obj )) return "";
 	return ", object no longer defined";
 }
-//WIP, new way to check if defined and true, and compare two objects
-IsVal(arg1, arg2, forceit){
-	/*Check if arg1 is true and defined, and also == to arg2 (optional), 
-	if arg2 undefined it can still return true if arg1 is true
-	strings return true
-	Optional calls:
-	    isVal(arg1) //check if one object is defined and true
-	    isVal(arg1, arg2) //check if both objects are defined and true
-	    isVal(arg1, arg2, forceit) //if second object not defined, return false
-	*/
-	if(!IsDefined( arg1 )){
-		/# IPrintLn( "IsVal, arg1 not defined" ); #/
-		return false;
-	}
-	if(IsDefined( arg2 )){
-		if(arg1==arg2) return true;
-		return false;
-	}
-	if(IsDefined( forceit ) && forceit){
-		/# IPrintLn( "IsVal, arg1 defined, but arg2 not defined" ); #/
-		return false;
-	}
-	if(arg1) return true;
-	return false;
+
+
+//Fire Damage
+FireInit(){
+	level.firedamage = 50;//change for damage for fire
+	fire = GetEntArray( "fire","targetname" );//trigger multiples with targetname fire
+	array_thread( fire,::FireBad );
 }
-//player CanAfford(self.zombie_cost);
-CanAfford(cost){
-	if(!IsDefined( self )) return false;
-	if(!is_player_valid( self )) return false;
-	if(!IsDefined( cost )) return true;
-	if(self.score+5>=cost){
-		self maps\_zombiemode_score::minus_to_player_score( cost );
-		return true;
+FireBad(){
+	damageDelay = .5;
+	while(1) {
+	    self waittill("trigger", who);
+	    if(!IsPlayer( who )){
+	    	who DoDamage( level.firedamage, self.origin);
+	    	// who thread animscripts\death::flame_death_fx();//could do something to set zombies on fire
+	    }else{
+	    	if(is_player_valid( who ){
+				if(who.health > level.firedamage+1){
+					who dodamage( level.firedamage, self.origin );
+					who SetBurn( damageDelay );
+				}else{
+					RadiusDamage( who.origin, 50, level.firedamage, level.firedamage );
+				}
+		    }
+	    } 
+	   wait(damageDelay);
 	}
 }
+	
